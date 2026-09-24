@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0060A9">
+<title>Inspeção Puma</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inspeção Puma">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{
+  --pri:#0060A9; --pri2:#0079C1; --acc:#00A651;
+  --bg:#F2F5F8; --card:#FFFFFF; --tx:#1A2330; --tx2:#5B6878; --bd:#D8DFE7;
+  --in:#FFFFFF; --ok:#1E8E3E; --okbg:#E6F4EA; --warn:#C5221F; --warnbg:#FCE8E6; --pend:#8A96A3; --pendbg:#EEF1F4;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+:root[data-theme="dark"]{
+  --bg:#0F151C; --card:#18212B; --tx:#E6EDF3; --tx2:#9AA8B6; --bd:#2A3643;
+  --in:#101820; --okbg:#12311D; --warnbg:#3A1715; --pendbg:#222D38; --ok:#5BD07A; --warn:#FF7B72;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;-webkit-text-size-adjust:100%}
+header.top{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:12px 16px calc(12px);display:flex;align-items:center;gap:10px}
+header.top h1{font-size:17px;margin:0;line-height:1.2;flex:1}
+header.top small{display:block;font-weight:400;opacity:.85;font-size:12px}
+.iconbtn{background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:12px 12px 110px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;margin:0 0 12px;box-shadow:var(--shadow);overflow:hidden}
+.card>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:10px;font-weight:600}
+.card>summary::-webkit-details-marker{display:none}
+.card>summary .ttl{flex:1}
+.card>summary .ttl small{display:block;font-weight:400;color:var(--tx2);font-size:12.5px;margin-top:2px}
+.card>summary::after{content:"▾";color:var(--tx2);transition:transform .2s}
+.card[open]>summary::after{transform:rotate(180deg)}
+.body{padding:0 16px 16px}
+.grp{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx2);margin:18px 4px 8px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--pri2);margin:18px 0 8px;border-bottom:1px solid var(--bd);padding-bottom:6px}
+:root[data-theme="dark"] h3{color:#6CB6F0}
+label{display:block;font-size:13px;color:var(--tx2);margin:0 0 4px}
+.f{margin-bottom:10px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--in);color:var(--tx);font-size:16px;font-family:inherit}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri2);outline-offset:0;border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cmp{display:grid;grid-template-columns:1fr 1fr 86px;gap:8px;align-items:end}
+.delta{padding:10px 6px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;background:var(--pendbg);color:var(--pend);min-height:44px;display:flex;flex-direction:column;justify-content:center;line-height:1.1}
+.delta small{font-weight:500;font-size:10.5px;opacity:.85}
+.delta.ok{background:var(--okbg);color:var(--ok)}
+.delta.warn{background:var(--warnbg);color:var(--warn)}
+.seg{display:flex;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.seg button{flex:1;padding:11px 4px;border:0;background:var(--in);color:var(--tx);font-size:14px;cursor:pointer;border-right:1px solid var(--bd)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--pri);color:#fff;font-weight:600}
+.seg button.on.bad{background:var(--warn)}
+.seg button.on.good{background:var(--ok)}
+.badge{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}
+.b-warn{background:var(--warnbg);color:var(--warn)}
+.b-pend{background:var(--pendbg);color:var(--pend)}
+.b-skip{background:var(--pendbg);color:var(--tx2)}
+.issues{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--warnbg);color:var(--warn);font-size:14px}
+.issues ul{margin:4px 0 0;padding-left:18px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:8px}
+.ph{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--bd);background:var(--pendbg)}
+.ph img{width:100%;height:96px;object-fit:cover;display:block}
+.ph span{display:block;font-size:11px;padding:4px 6px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph button{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:26px;height:26px;cursor:pointer}
+.phbtns{display:flex;flex-wrap:wrap;gap:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--in);color:var(--tx);font-size:14px;font-weight:600;cursor:pointer}
+.btn.sm{padding:8px 10px;font-size:13px}
+.btn.has{border-color:var(--acc)}
+.cnt{background:var(--acc);color:#fff;border-radius:10px;padding:1px 7px;font-size:11.5px}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.danger{color:var(--warn)}
+.hint{font-size:12.5px;color:var(--tx2);margin:4px 0 10px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;z-index:10}
+.bar .prog{flex:1;font-size:13px;color:var(--tx2)}
+.bar .prog b{color:var(--tx)}
+.pbar{height:6px;background:var(--pendbg);border-radius:4px;margin-top:4px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--acc);width:0}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;max-width:90%}
+.toast.show{opacity:1}
+.set{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabs{display:flex;gap:4px;background:var(--pri);padding:0 12px 8px;position:sticky;top:64px;z-index:9}
+.tabs button{flex:1;border:0;background:rgba(255,255,255,.14);color:#fff;padding:9px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.tabs button.on{background:#fff;color:var(--pri)}
+.rng{font-size:12.5px;margin:-4px 0 10px;padding:6px 10px;border-radius:8px;background:var(--pendbg);color:var(--tx2)}
+.rng b.ok{color:var(--ok)} .rng b.warn{color:var(--warn)}
+table.lim{width:100%;border-collapse:collapse;font-size:14px}
+table.lim th{font-size:12px;color:var(--tx2);text-align:left;font-weight:600;padding:4px}
+table.lim td{padding:4px}
+table.lim td:first-child{white-space:nowrap;padding-right:8px}
+table.lim input{padding:8px;text-align:center}
+table.lim input:disabled{background:transparent;border-color:transparent;color:var(--tx);opacity:1;-webkit-text-fill-color:var(--tx);font-weight:600}
+.lockbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.lockbar p{flex:1;margin:0}
+#report{display:none}
+
+/* ===== RELATÓRIO (impressão / PDF) ===== */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important;color:#000;font-size:10.5pt}
+  header.top,main,.bar,.toast,.tabs{display:none!important}
+  #report{display:block}
+  .r-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #0060A9;padding-bottom:6px;margin-bottom:10px}
+  .r-head h1{font-size:16pt;margin:0;color:#0060A9}
+  .r-head div{font-size:9.5pt;text-align:right}
+  .r-sec{font-size:11pt;color:#fff;background:#0060A9;padding:4px 8px;margin:14px 0 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.r{width:100%;border-collapse:collapse;font-size:8.8pt}
+  table.r th,table.r td{border:1px solid #999;padding:3px 4px;text-align:center}
+  table.r th{background:#E3ECF5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.r td.l{text-align:left;white-space:nowrap}
+  table.r td.fx{color:#C5221F;font-weight:700;text-decoration:underline}
+  .r-ok{color:#1E7E34;font-weight:700}
+  .r-warn{color:#C5221F;font-weight:700}
+  .r-pt{page-break-inside:avoid;border:1px solid #bbb;padding:6px 8px;margin-bottom:8px}
+  .r-pt h4{margin:0 0 4px;font-size:10.5pt}
+  .r-ph{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .r-ph figure{margin:0;width:31%;page-break-inside:avoid}
+  .r-ph img{width:100%;max-height:60mm;object-fit:contain;border:1px solid #ccc}
+  .r-ph figcaption{font-size:8pt;text-align:center}
+  .r-sign{display:flex;gap:30px;margin-top:30px}
+  #report{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .pb{page-break-before:always}
+  .r-sub{font-size:8.5pt;color:#5B6878;margin:-2px 0 6px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 10px}
+  .kpi{border:1px solid #D8DFE7;border-radius:8px;padding:8px 10px;background:#F7F9FB}
+  .kpi small{display:block;font-size:8pt;color:#5B6878;text-transform:uppercase;letter-spacing:.04em}
+  .kpi b{display:block;font-size:20pt;line-height:1.1;color:#1A2330}
+  .kpi span{font-size:8.5pt;color:#5B6878}
+  .kpi .ic{font-size:11pt;margin-right:4px}
+  .ic-ok{color:#1E8E3E}.ic-warn{color:#C5221F}.ic-pend{color:#8A96A3}
+  .mapa{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px}
+  .mt{border:1px solid #D8DFE7;border-left:4px solid #8A96A3;border-radius:6px;padding:5px 7px;font-size:8.3pt;line-height:1.25;background:#fff}
+  .mt b{display:block;font-size:8.6pt;color:#1A2330}
+  .mt.ok{border-left-color:#1E8E3E;background:#F1F8F3}.mt.warn{border-left-color:#C5221F;background:#FDF1F0}
+  .mt .st{font-weight:700}.mt.ok .st{color:#1E8E3E}.mt.warn .st{color:#C5221F}.mt .st.n{color:#8A96A3}
+  table.acao{width:100%;border-collapse:collapse;font-size:8.6pt}
+  table.acao th{text-align:left;color:#5B6878;font-weight:600;font-size:8pt;border-bottom:1.5px solid #1A2330;padding:4px}
+  table.acao td{border-bottom:1px solid #E3E8EE;padding:5px 4px;vertical-align:top}
+  .prio{font-weight:700;font-size:7.8pt;padding:1px 6px;border-radius:8px;white-space:nowrap}
+  .prio.a{background:#FCE8E6;color:#C5221F}.prio.m{background:#FFF4E0;color:#9A5B00}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pc{border:1px solid #D8DFE7;border-left:4px solid #8A96A3;border-radius:8px;padding:7px 9px;page-break-inside:avoid;break-inside:avoid}
+  .pc.ok{border-left-color:#1E8E3E}.pc.warn{border-left-color:#C5221F}
+  .pc h4{display:flex;justify-content:space-between;align-items:center;margin:0 0 4px;font-size:9.8pt}
+  .pill{font-size:7.6pt;font-weight:700;padding:2px 7px;border-radius:9px}
+  .pill.ok{background:#E6F4EA;color:#1E8E3E}.pill.warn{background:#FCE8E6;color:#C5221F}.pill.pend,.pill.skip{background:#EEF1F4;color:#5B6878}
+  .rg{display:grid;grid-template-columns:17mm 1fr 30mm;gap:6px;align-items:center;margin:1px 0}
+  .rg .nm{font-size:8pt;color:#5B6878;line-height:1.1}
+  .rg .nm small{display:block;font-size:6.8pt}
+  .rg .vl{font-size:7.8pt;color:#1A2330;line-height:1.25;font-variant-numeric:tabular-nums}
+  .rg .vl .d{color:#5B6878}.rg .vl .d.w{color:#C5221F;font-weight:700}
+  .rg svg{width:100%;height:auto;display:block}
+  .dos{font-size:7.8pt;color:#5B6878;border-top:1px dashed #D8DFE7;margin-top:4px;padding-top:3px}
+  .dos b{color:#1A2330;font-weight:600}.dos .w{color:#C5221F;font-weight:700}
+  .leg{display:flex;gap:14px;font-size:8pt;color:#5B6878;margin:0 0 6px;align-items:center}
+  .leg svg{vertical-align:middle}
+  .r-sign div{flex:1;border-top:1px solid #000;text-align:center;padding-top:4px;font-size:9pt}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Inspeção Ecolab · Nalco<small>Klabin Puma · Trasar / Caldeiras</small></h1>
+  <button class="iconbtn" id="themeBtn" title="Modo escuro">◐</button>
+</header>
+<nav class="tabs"><button type="button" data-view="insp" class="on">📋 Inspeção</button><button type="button" data-view="lim">📏 Limites de controle</button></nav>
+
+<main id="app"></main>
+
+<div class="bar">
+  <div class="prog"><b id="progTxt">0/0</b> pontos inspecionados<div class="pbar"><i id="progBar"></i></div></div>
+  <button class="btn pri" id="pdfBtn">📄 Gerar PDF</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept="image/*" capture="environment" style="display:none">
+<div id="report"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= CONFIGURAÇÃO ================= */
+var PONTOS = [
+  {id:"da1",   nome:"Trasar Desaerador 1", grupo:"Desaeradores"},
+  {id:"da2",   nome:"Trasar Desaerador 2", grupo:"Desaeradores"},
+  {id:"cdf1d", nome:"CDF1 – Descarga",     grupo:"Caldeira CDF1",          dose:true},
+  {id:"cdf2a", nome:"CDF2 – Alimentação",  grupo:"Caldeira CDF2",          dose:true},
+  {id:"cdf2d", nome:"CDF2 – Descarga",     grupo:"Caldeira CDF2",          dose:true},
+  {id:"cdr1a", nome:"CDR1 – Alimentação",  grupo:"Caldeira CDR1 (Balão)",  dose:true},
+  {id:"cdr1d", nome:"CDR1 – Descarga",     grupo:"Caldeira CDR1 (Balão)",  dose:true},
+  {id:"cdr2a", nome:"CDR2 – Alimentação",  grupo:"Caldeira CDR2 (3461 REC2)", dose:true},
+  {id:"cdr2d", nome:"CDR2 – Descarga",     grupo:"Caldeira CDR2 (3461 REC2)", dose:true},
+  {id:"wsa",   nome:"Trasar WSA",          grupo:"Caldeira Ácido WSA",     dose:true}
+];
+var PRODUTOS = ["Amina","Fosfato"];
+
+/* Faixas de controle padrão (preencher com os valores oficiais da Puma).
+   Formato: "min","max" como texto; vazio = sem limite. */
+var PARAMS = [
+  {k:"ph",   nome:"pH",                      un:"",      casas:2},
+  {k:"cond", nome:"Condutividade",           un:"µS/cm", casas:0},
+  {k:"fos",  nome:"TRASAR Dose (tinta)",     un:"ppm",   casas:1, flag:"dose"}
+];
+function aplica(q,pt){ return !q.flag || !!pt[q.flag]; }
+/* Fonte: Nalco Water Quality IQ – System Performance by Parameter (23/09/2026) */
+var LIMITES_PADRAO = {
+  da1:  {phMin:"9,2", phMax:"9,8", condMin:"3", condMax:"10"},
+  da2:  {phMin:"9,2", phMax:"9,8", condMin:"3", condMax:"10"},
+  cdf1d:{phMin:"9,3", phMax:"9,7", condMin:"5", condMax:"30", fosMin:"25", fosMax:"75"},
+  cdf2a:{phMin:"9,3", phMax:"9,7", condMin:"8", condMax:"30", fosMin:"25", fosMax:"75"},
+  cdf2d:{phMin:"9,3", phMax:"9,7", condMin:"8", condMax:"30", fosMin:"25", fosMax:"75"},
+  cdr1a:{phMin:"9,3", phMax:"9,7", condMin:"5", condMax:"30", fosMin:"25", fosMax:"75"},
+  cdr1d:{phMin:"9,3", phMax:"9,7", condMin:"5", condMax:"30", fosMin:"25", fosMax:"75"},
+  cdr2a:{phMin:"9,3", phMax:"9,7", condMin:"6", condMax:"80", fosMin:"40", fosMax:"75"},
+  cdr2d:{phMin:"9,3", phMax:"9,7", condMin:"6", condMax:"80", fosMin:"40", fosMax:"75"},
+  wsa:  {phMin:"9,2", phMax:"9,8", condMin:"3", condMax:"30", fosMin:"25", fosMax:"75"}
+};
+var LIM_REF_PADRAO = "Limites do Nalco Water Quality IQ (System Performance by Parameter), consultados em 23/09/2026.";
+var LIM_KEY = "puma_limites_v2";
+var KEY = "puma_inspecao_v1";
+var THEME_KEY = "puma_theme";
+
+/* ================= ESTADO ================= */
+function hoje(){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function novoEstado(inspetor){
+  var s = {
+    cab:{data:hoje(), inspetor:inspetor||"", obs:""},
+    cfg:{tolPh:0.3, tolCond:10, tolPO4:0.5, fatorPO4:25.84, tolBufPh:0.1, tolPadrao:5},
+    med:{modelo:"", serie:"", calib:"", buf1:"7,00", buf1L:"", buf2:"4,01", buf2L:"", padrao:"1413", padraoL:"", bateria:"", eletrodo:"", obs:"", fotos:[]},
+    pts:{}
+  };
+  PONTOS.forEach(function(p){
+    s.pts[p.id] = {skip:false, phT:"", phP:"", condT:"", condP:"", fosT:"", fosP:"",
+      produto:"", dosagem:"", vazao:"", pressao:"", nivel:"", vazamento:"", vazDesc:"", obs:"", fotos:[]};
+  });
+  return s;
+}
+var S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e){ S = null; }
+if(!S || !S.pts){ S = novoEstado(); }
+// garante que pontos novos existam após atualização da lista
+(function(){ var base=novoEstado(); PONTOS.forEach(function(p){ if(!S.pts[p.id]) S.pts[p.id]=base.pts[p.id]; });
+  S.cfg = Object.assign(base.cfg, S.cfg||{}); S.med = Object.assign(base.med, S.med||{}); })();
+
+/* limites: ficam salvos separados (não apagam em "Nova inspeção") */
+function limitesPadrao(){
+  var L={}; PONTOS.forEach(function(p){ var d=LIMITES_PADRAO[p.id]||{}; L[p.id]={};
+    PARAMS.forEach(function(q){ L[p.id][q.k+"Min"]=d[q.k+"Min"]||""; L[p.id][q.k+"Max"]=d[q.k+"Max"]||""; }); });
+  L._ref=LIM_REF_PADRAO; return L;
+}
+var L;
+try { L=JSON.parse(localStorage.getItem(LIM_KEY)); } catch(e){ L=null; }
+(function(){ var b=limitesPadrao(); if(!L){ L=b; return; } PONTOS.forEach(function(p){ L[p.id]=Object.assign(b[p.id],L[p.id]||{}); }); if(L._ref==null) L._ref=LIM_REF_PADRAO; })();
+function saveLim(){ try{ localStorage.setItem(LIM_KEY,JSON.stringify(L)); }catch(e){} }
+var VIEW="insp", limEdit=false;
+
+var saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(saveNow,300); }
+window.addEventListener("pagehide",function(){ saveNow(); });
+document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="hidden") saveNow(); });
+function saveNow(){
+  clearTimeout(saveT);
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast("⚠️ Memória do navegador cheia. Gere o PDF ou remova algumas fotos.",5000); }
+}
+
+/* ================= UTIL ================= */
+function $(s,r){ return (r||document).querySelector(s); }
+function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+function num(v){ if(v==null||v==="") return null; var n=parseFloat(String(v).replace(",",".")); return isNaN(n)?null:n; }
+function fmt(n,d){ return n==null?"–":n.toFixed(d).replace(".",","); }
+function getPath(path){ return path.split(".").reduce(function(o,k){return o==null?undefined:o[k];},S); }
+function setPath(path,val){ var ks=path.split("."), o=S; for(var i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=val; }
+var tT;
+function toast(m,ms){ var t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tT); tT=setTimeout(function(){t.classList.remove("show");},ms||2200); }
+function dataBR(iso){ if(!iso) return ""; var p=iso.split("-"); return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso; }
+
+/* ================= AVALIAÇÃO ================= */
+function cmpPh(a,b){ var x=num(a),y=num(b); if(x==null||y==null) return null; var d=Math.abs(x-y); return {d:d, ok:d<=S.cfg.tolPh}; }
+/* TRASAR mostra residual de tinta (ppm produto); PO4 = tinta ÷ fator (padrão 25,84) */
+function fator(){ var f=+S.cfg.fatorPO4; return f>0?f:25.84; }
+function po4Calc(p){ var d=num(p.fosT); return d==null?null:d/fator(); }
+function cmpFos(p){ var x=po4Calc(p),y=num(p.fosP); if(x==null||y==null) return null; var d=Math.abs(x-y); return {d:d, ok:d<=S.cfg.tolPO4}; }
+function faixaPO4(id,val){ var v=num(val), lo=num(L[id].fosMin), hi=num(L[id].fosMax);
+  if(v==null||(lo==null&&hi==null)) return null; if(lo!=null&&v<lo/fator()) return "baixo"; if(hi!=null&&v>hi/fator()) return "alto"; return "ok"; }
+function faixaPO4Txt(id){ var lo=num(L[id].fosMin), hi=num(L[id].fosMax), f=fator();
+  if(lo==null&&hi==null) return ""; if(lo!=null&&hi!=null) return fmt(lo/f,2)+" – "+fmt(hi/f,2); return lo!=null?"≥ "+fmt(lo/f,2):"≤ "+fmt(hi/f,2); }
+/* faixa: retorna null (sem limite/valor), "ok", "baixo" ou "alto" */
+function faixa(id,k,val){
+  var v=num(val), lo=num(L[id][k+"Min"]), hi=num(L[id][k+"Max"]);
+  if(v==null||(lo==null&&hi==null)) return null;
+  if(lo!=null&&v<lo) return "baixo"; if(hi!=null&&v>hi) return "alto"; return "ok";
+}
+function faixaTxt(id,k,casas){
+  var lo=num(L[id][k+"Min"]), hi=num(L[id][k+"Max"]);
+  if(lo==null&&hi==null) return "";
+  if(lo!=null&&hi!=null) return fmt(lo,casas)+" – "+fmt(hi,casas);
+  return lo!=null?"≥ "+fmt(lo,casas):"≤ "+fmt(hi,casas);
+}
+var FONTES={ph:[["phT","Trasar"],["phP","Portátil"]], cond:[["condT","Trasar"],["condP","Portátil"]], fos:[["fosT","Trasar"]]};
+function cmpCond(a,b){ var x=num(a),y=num(b); if(x==null||y==null||y===0) return null; var d=Math.abs(x-y)/y*100; return {d:d, ok:d<=S.cfg.tolCond}; }
+
+function avaliaPonto(id){
+  var p=S.pts[id], issues=[], filled=false;
+  if(p.skip) return {st:"skip", issues:[]};
+  ["phT","phP","condT","condP","fosT","fosP","produto","dosagem","vazao","pressao","nivel","vazamento"].forEach(function(k){ if(p[k]!=="" && p[k]!=null) filled=true; });
+  if(p.fotos.length) filled=true;
+  var ph=cmpPh(p.phT,p.phP); if(ph && !ph.ok) issues.push("Diferença de pH Trasar × portátil = "+fmt(ph.d,2)+" (limite "+fmt(S.cfg.tolPh,2)+")");
+  var cd=cmpCond(p.condT,p.condP); if(cd && !cd.ok) issues.push("Diferença de condutividade = "+fmt(cd.d,1)+"% (limite "+fmt(S.cfg.tolCond,0)+"%)");
+  var fo=cmpFos(p); if(fo && !fo.ok) issues.push("Diferença de PO₄ Trasar (calc. "+fmt(po4Calc(p),2)+") × laboratório ("+p.fosP+") = "+fmt(fo.d,2)+" ppm (limite "+fmt(S.cfg.tolPO4,2)+" ppm)");
+  var rl=faixaPO4(id,p.fosP); if(rl==="alto"||rl==="baixo") issues.push("PO₄ Laboratório "+p.fosP+" ppm "+(rl==="alto"?"ACIMA":"ABAIXO")+" da faixa ("+faixaPO4Txt(id)+" ppm)");
+  var pt=PONTOS.filter(function(x){return x.id===id;})[0];
+  PARAMS.forEach(function(q){ if(!aplica(q,pt)) return;
+    FONTES[q.k].forEach(function(f){ var r=faixa(id,q.k,p[f[0]]);
+      if(r==="baixo"||r==="alto") issues.push(q.nome+" "+f[1]+" "+p[f[0]]+(q.un?" "+q.un:"")+" "+(r==="alto"?"ACIMA":"ABAIXO")+" da faixa ("+faixaTxt(id,q.k,q.casas)+")"); }); });
+  if(p.dosagem==="parada") issues.push("Dosagem parada");
+  if(p.vazamento==="sim") issues.push("Vazamento identificado"+(p.vazDesc?": "+p.vazDesc:""));
+  if(!filled) return {st:"pend", issues:[]};
+  return {st:issues.length?"warn":"ok", issues:issues};
+}
+function avaliaMedidor(){
+  var m=S.med, issues=[];
+  var b1=num(m.buf1),l1=num(m.buf1L),b2=num(m.buf2),l2=num(m.buf2L),pd=num(m.padrao),pl=num(m.padraoL);
+  if(b1!=null&&l1!=null&&Math.abs(b1-l1)>S.cfg.tolBufPh) issues.push("Tampão pH "+fmt(b1,2)+" lido "+fmt(l1,2));
+  if(b2!=null&&l2!=null&&Math.abs(b2-l2)>S.cfg.tolBufPh) issues.push("Tampão pH "+fmt(b2,2)+" lido "+fmt(l2,2));
+  if(pd&&pl!=null&&Math.abs(pl-pd)/pd*100>S.cfg.tolPadrao) issues.push("Padrão de condutividade fora ("+fmt(Math.abs(pl-pd)/pd*100,1)+"%)");
+  if(m.bateria==="baixa") issues.push("Bateria baixa");
+  if(m.eletrodo==="ruim") issues.push("Eletrodo com problema");
+  var filled = [m.buf1L,m.buf2L,m.padraoL,m.bateria,m.eletrodo].some(function(v){return v!=="";});
+  return {st: !filled?"pend":(issues.length?"warn":"ok"), issues:issues};
+}
+function badge(st){
+  return {ok:'<span class="badge b-ok">✔ OK</span>', warn:'<span class="badge b-warn">⚠ Atenção</span>',
+          pend:'<span class="badge b-pend">Pendente</span>', skip:'<span class="badge b-skip">Não inspecionado</span>'}[st];
+}
+
+/* ================= COMPONENTES ================= */
+function inp(path,lbl,opt){
+  opt=opt||{}; var v=getPath(path);
+  var type=opt.type||"text", im=opt.num?' inputmode="decimal"':"";
+  return '<div class="f"><label>'+lbl+'</label><input type="'+type+'"'+im+' data-k="'+path+'" value="'+esc(v)+'" placeholder="'+(opt.ph||"")+'"></div>';
+}
+function seg(path,lbl,opts){
+  var v=getPath(path);
+  return '<div class="f"><label>'+lbl+'</label><div class="seg" data-seg="'+path+'">'+opts.map(function(o){
+    return '<button type="button" data-v="'+o[0]+'" class="'+(v===o[0]?"on ":"")+(o[2]||"")+'">'+o[1]+'</button>';
+  }).join("")+'</div></div>';
+}
+function deltaBox(id,kind){ return '<div class="delta" id="d-'+kind+'-'+id+'">–</div>'; }
+var FOTO_LBL={};
+function fotosBlock(path,labels){
+  FOTO_LBL[path]=labels;
+  return '<div id="ph-'+path.replace(/\./g,"-")+'">'+fotosInner(path)+'</div>';
+}
+function fotosInner(path){
+  var arr=getPath(path);
+  return '<div class="phbtns">'+FOTO_LBL[path].map(function(l){
+      var n=arr.filter(function(f){return f.l===l;}).length;
+      return '<button type="button" class="btn sm'+(n?' has':'')+'" data-foto="'+path+'" data-lbl="'+esc(l)+'">📷 '+esc(l)+(n?' <span class="cnt">'+n+'</span>':'')+'</button>';
+    }).join("")+'</div><p class="hint" style="margin:6px 0 0">Toque de novo no mesmo botão para adicionar mais fotos do item.</p><div class="photos">'+fotosHTML(path,arr)+'</div>';
+}
+function fotosHTML(path,arr){
+  return arr.map(function(f,i){
+    return '<div class="ph"><img src="'+f.d+'" alt=""><span>'+esc(f.l)+' · '+esc(f.t||"")+'</span><button type="button" data-delfoto="'+path+'" data-i="'+i+'">✕</button></div>';
+  }).join("");
+}
+
+/* ================= RENDER ================= */
+function render(){
+  document.querySelector(".bar").style.display=VIEW==="insp"?"":"none";
+  Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(b){ b.classList.toggle("on",b.getAttribute("data-view")===VIEW); });
+  if(VIEW==="lim") return renderLimites();
+  var h='';
+  // Cabeçalho
+  h+='<details class="card" open><summary><span class="ttl">Dados da inspeção<small id="cabSub"></small></span></summary><div class="body">';
+  h+='<div class="row">'+inp("cab.data","Data",{type:"date"})+inp("cab.inspetor","Inspetor",{ph:"Nome"})+'</div>';
+  h+='<div class="f"><label>Observações gerais</label><textarea data-k="cab.obs">'+esc(S.cab.obs)+'</textarea></div>';
+  h+='</div></details>';
+
+  // Medidor portátil
+  var m=S.med;
+  h+='<details class="card" id="card-med"><summary><span class="ttl">🔬 Medidor portátil<small>Verificar antes de ir a campo</small></span><span id="bd-med"></span></summary><div class="body">';
+  h+='<div class="row">'+inp("med.modelo","Modelo / TAG")+inp("med.serie","Nº de série")+'</div>';
+  h+=inp("med.calib","Última calibração",{type:"date"});
+  h+='<h3>Verificação com tampões de pH</h3><p class="hint">Informe o valor do tampão e o que o medidor leu. Tolerância: ±'+fmt(S.cfg.tolBufPh,2)+'.</p>';
+  h+='<div class="cmp">'+inp("med.buf1","Tampão 1",{num:1})+inp("med.buf1L","Leitura",{num:1})+'<div class="delta" id="d-b1">–</div></div>';
+  h+='<div class="cmp">'+inp("med.buf2","Tampão 2",{num:1})+inp("med.buf2L","Leitura",{num:1})+'<div class="delta" id="d-b2">–</div></div>';
+  h+='<h3>Padrão de condutividade (µS/cm)</h3><p class="hint">Tolerância: ±'+fmt(S.cfg.tolPadrao,0)+'%.</p>';
+  h+='<div class="cmp">'+inp("med.padrao","Padrão",{num:1})+inp("med.padraoL","Leitura",{num:1})+'<div class="delta" id="d-pd">–</div></div>';
+  h+='<h3>Condição</h3>';
+  h+=seg("med.bateria","Bateria",[["ok","OK","good"],["baixa","Baixa","bad"]]);
+  h+=seg("med.eletrodo","Eletrodo / sonda",[["ok","OK","good"],["ruim","Com problema","bad"]]);
+  h+='<div class="f"><label>Observações</label><textarea data-k="med.obs">'+esc(m.obs)+'</textarea></div>';
+  h+=fotosBlock("med.fotos",["Medidor","Calibração"]);
+  h+='<div id="is-med"></div>';
+  h+='</div></details>';
+
+  // Pontos
+  var grp="";
+  PONTOS.forEach(function(pt){
+    var p=S.pts[pt.id], k="pts."+pt.id;
+    if(pt.grupo!==grp){ grp=pt.grupo; h+='<div class="grp">'+esc(grp)+'</div>'; }
+    h+='<details class="card" id="card-'+pt.id+'"><summary><span class="ttl">'+esc(pt.nome)+'<small id="sub-'+pt.id+'"></small></span><span id="bd-'+pt.id+'"></span></summary><div class="body">';
+    h+='<label style="display:flex;gap:8px;align-items:center;margin:4px 0 6px;font-size:14px;color:var(--tx)"><input type="checkbox" data-chk="'+k+'.skip" style="width:20px;height:20px" '+(p.skip?"checked":"")+'> Não inspecionado neste dia</label>';
+    h+='<div id="wrap-'+pt.id+'"'+(p.skip?' style="display:none"':'')+'>';
+
+    h+='<h3>Análise · Trasar × Portátil</h3>';
+    h+='<div class="cmp">'+inp(k+".phT","pH Trasar",{num:1})+inp(k+".phP","pH Portátil",{num:1})+deltaBox(pt.id,"ph")+'</div>';
+    h+='<div class="rng" id="rg-ph-'+pt.id+'"></div>';
+    h+='<div class="cmp">'+inp(k+".condT","Cond. Trasar (µS/cm)",{num:1})+inp(k+".condP","Cond. Portátil (µS/cm)",{num:1})+deltaBox(pt.id,"cd")+'</div>';
+    h+='<div class="rng" id="rg-cond-'+pt.id+'"></div>';
+    if(pt.dose){
+      h+='<div class="cmp">'+inp(k+".fosT","TRASAR Dose – tinta (ppm)",{num:1})+inp(k+".fosP","PO₄ Laboratório (ppm)",{num:1})+deltaBox(pt.id,"fo")+'</div>';
+      h+='<div class="rng" id="rg-fos-'+pt.id+'"></div>';
+    }
+
+    h+='<h3>Dosagem</h3>';
+    h+=seg(k+".produto","Produto",PRODUTOS.map(function(x){return [x,x];}));
+    h+=seg(k+".dosagem","Bomba / dosagem",[["operando","Operando","good"],["parada","Parada","bad"]]);
+    h+='<div class="row3">'+inp(k+".vazao","Vazão rotâm. (L/h)",{num:1})+inp(k+".pressao","Pressão (kgf/cm²)",{num:1})+inp(k+".nivel","Nível tanque (L)",{num:1})+'</div>';
+    h+=seg(k+".vazamento","Vazamentos",[["nao","Não","good"],["sim","Sim","bad"]]);
+    h+='<div class="f" id="vd-'+pt.id+'"'+(p.vazamento==="sim"?"":' style="display:none"')+'><label>Onde / descrição do vazamento</label><input data-k="'+k+'.vazDesc" value="'+esc(p.vazDesc)+'"></div>';
+
+    h+='<h3>Fotos</h3>';
+    h+=fotosBlock(k+".fotos",["Display Trasar","Portátil pH","Portátil Cond.","Rotâmetro","Tanque","Outra"]);
+    h+='<div class="f" style="margin-top:12px"><label>Observações</label><textarea data-k="'+k+'.obs">'+esc(p.obs)+'</textarea></div>';
+    h+='</div><div id="is-'+pt.id+'"></div>';
+    h+='</div></details>';
+  });
+
+  // Configurações e ações
+  h+='<div class="grp">Configurações</div>';
+  h+='<details class="card"><summary><span class="ttl">⚙️ Tolerâncias<small>Critérios de aprovação das comparações</small></span></summary><div class="body">';
+  h+='<div class="set">'+inp("cfg.tolPh","Δ pH Trasar × portátil",{num:1})+inp("cfg.tolCond","Δ condutividade (%)",{num:1})+inp("cfg.tolPO4","Δ PO₄ Trasar × lab (ppm)",{num:1})+inp("cfg.fatorPO4","Fator tinta → PO₄ (÷)",{num:1})
+     +inp("cfg.tolBufPh","Δ tampão pH (medidor)",{num:1})+inp("cfg.tolPadrao","Δ padrão cond. (%)",{num:1})+'</div>';
+  h+='</div></details>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
+    +'<button class="btn danger" id="newBtn">🗑 Nova inspeção</button></div>';
+  h+='<p class="hint" style="margin-top:14px">Os dados ficam salvos neste aparelho até você iniciar uma nova inspeção.</p>';
+
+  $("#app").innerHTML=h;
+  atualizaTudo();
+}
+
+/* ================= TELA DE LIMITES ================= */
+function renderLimites(){
+  var h='<div class="lockbar"><p class="hint">Faixas usadas para avaliar cada leitura (Trasar, portátil e laboratório). Campo vazio = sem limite.</p>'
+    +'<button type="button" class="btn sm'+(limEdit?' pri':'')+'" id="limEditBtn">'+(limEdit?'✔ Concluir':'✏️ Editar')+'</button></div>';
+  var dis=limEdit?'':' disabled';
+  var grp="";
+  PONTOS.forEach(function(pt){
+    if(pt.grupo!==grp){ grp=pt.grupo; h+='<div class="grp">'+esc(grp)+'</div>'; }
+    h+='<div class="card"><div class="body" style="padding-top:12px"><div style="font-weight:600;margin-bottom:6px">'+esc(pt.nome)+'</div>';
+    h+='<table class="lim"><tr><th>Parâmetro</th><th style="text-align:center">Mínimo</th><th style="text-align:center">Máximo</th></tr>';
+    PARAMS.forEach(function(q){
+      if(!aplica(q,pt)) return;
+      h+='<tr><td>'+q.nome+(q.un?' <small style="color:var(--tx2)">('+q.un+')</small>':'')+'</td>'
+        +'<td><input inputmode="decimal" data-lim="'+pt.id+'.'+q.k+'Min" value="'+esc(L[pt.id][q.k+"Min"])+'" placeholder="–"'+dis+'></td>'
+        +'<td><input inputmode="decimal" data-lim="'+pt.id+'.'+q.k+'Max" value="'+esc(L[pt.id][q.k+"Max"])+'" placeholder="–"'+dis+'></td></tr>';
+      if(q.k==="fos") h+='<tr><td style="color:var(--tx2)">↳ PO₄ equivalente <small>(÷ '+fmt(fator(),2)+')</small></td><td colspan="2" style="text-align:center;color:var(--tx2);font-weight:600">'+(faixaPO4Txt(pt.id)||'–')+' ppm</td></tr>';
+    });
+    h+='</table></div></div>';
+  });
+  h+='<div class="card"><div class="body" style="padding-top:12px"><label>Referência dos limites (procedimento, revisão, data)</label>'
+    +'<textarea data-lim="_ref"'+dis+'>'+esc(L._ref)+'</textarea></div></div>';
+  if(limEdit) h+='<button type="button" class="btn danger" id="limResetBtn">↺ Restaurar limites padrão</button>';
+  h+='<p class="hint" style="margin-top:14px">Os limites ficam salvos neste aparelho e não são apagados ao iniciar nova inspeção.</p>';
+  $("#app").innerHTML=h;
+}
+
+/* ================= ATUALIZAÇÕES PARCIAIS ================= */
+function setDelta(el,res,casas,suf){
+  if(!el) return;
+  el.className="delta"+(res?(res.ok?" ok":" warn"):"");
+  el.innerHTML=res?("Δ "+fmt(res.d,casas)+(suf||"")+"<small>"+(res.ok?"OK":"fora")+"</small>"):"–";
+}
+function atualizaPonto(id){
+  var p=S.pts[id];
+  setDelta($("#d-ph-"+id),cmpPh(p.phT,p.phP),2);
+  setDelta($("#d-cd-"+id),cmpCond(p.condT,p.condP),1,"%");
+  setDelta($("#d-fo-"+id),cmpFos(p),2);
+  PARAMS.forEach(function(q){
+    var el=$("#rg-"+q.k+"-"+id); if(!el) return;
+    var ft=faixaTxt(id,q.k,q.casas);
+    if(!ft){ el.innerHTML='Faixa de controle não cadastrada'; return; }
+    var parts=FONTES[q.k].map(function(f){ var r=faixa(id,q.k,p[f[0]]); if(!r) return "";
+      return f[1]+' <b class="'+(r==="ok"?"ok":"warn")+'">'+(r==="ok"?"✔ na faixa":(r==="alto"?"▲ acima":"▼ abaixo"))+'</b>'; }).filter(Boolean);
+    el.innerHTML='Faixa: <b>'+ft+(q.un?' '+q.un:'')+'</b>'+(parts.length?' · '+parts.join(' · '):'');
+    if(q.k==="fos"){
+      var pc=po4Calc(p), rl=faixaPO4(id,p.fosP);
+      el.innerHTML='Faixa tinta: <b>'+ft+' ppm</b> → PO₄ <b>'+faixaPO4Txt(id)+' ppm</b>'
+        +(pc!=null?'<br>PO₄ Trasar = '+esc(p.fosT)+' ÷ '+fmt(fator(),2)+' = <b>'+fmt(pc,2)+' ppm</b>'+(parts.length?' · '+parts.join(' · '):''):'')
+        +(rl?'<br>PO₄ Laboratório <b class="'+(rl==="ok"?"ok":"warn")+'">'+(rl==="ok"?"✔ na faixa":(rl==="alto"?"▲ acima":"▼ abaixo"))+'</b>':'');
+    }
+  });
+  var r=avaliaPonto(id);
+  $("#bd-"+id).innerHTML=badge(r.st);
+  var sub=[]; if(p.produto) sub.push(p.produto); if(p.phP) sub.push("pH "+p.phP); if(p.condP) sub.push(p.condP+" µS/cm");
+  $("#sub-"+id).textContent=sub.join(" · ");
+  $("#is-"+id).innerHTML=r.issues.length?'<div class="issues"><b>Pontos de atenção</b><ul>'+r.issues.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>':"";
+}
+function atualizaMedidor(){
+  var m=S.med;
+  function c(a,b,tol,pct){ var x=num(a),y=num(b); if(x==null||y==null) return null; var d=pct?Math.abs(y-x)/x*100:Math.abs(y-x); return {d:d,ok:d<=tol}; }
+  setDelta($("#d-b1"),c(m.buf1,m.buf1L,S.cfg.tolBufPh),2);
+  setDelta($("#d-b2"),c(m.buf2,m.buf2L,S.cfg.tolBufPh),2);
+  setDelta($("#d-pd"),num(m.padrao)?c(m.padrao,m.padraoL,S.cfg.tolPadrao,1):null,1,"%");
+  var r=avaliaMedidor();
+  $("#bd-med").innerHTML=badge(r.st);
+  $("#is-med").innerHTML=r.issues.length?'<div class="issues"><b>Medidor com pendência — resultados de campo podem não ser confiáveis</b><ul>'+r.issues.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>':"";
+}
+function atualizaProgresso(){
+  var tot=PONTOS.length, feitos=0;
+  PONTOS.forEach(function(p){ var st=avaliaPonto(p.id).st; if(st!=="pend") feitos++; });
+  $("#progTxt").textContent=feitos+"/"+tot;
+  $("#progBar").style.width=(feitos/tot*100)+"%";
+  $("#cabSub").textContent=[dataBR(S.cab.data),S.cab.inspetor].filter(Boolean).join(" · ");
+}
+function atualizaTudo(){ PONTOS.forEach(function(p){atualizaPonto(p.id);}); atualizaMedidor(); atualizaProgresso(); }
+function atualizaPor(path){
+  var ks=path.split(".");
+  if(ks[0]==="pts") atualizaPonto(ks[1]);
+  else if(ks[0]==="med") atualizaMedidor();
+  else if(ks[0]==="cfg") atualizaTudo();
+  atualizaProgresso();
+}
+
+/* ================= EVENTOS ================= */
+var app=$("#app");
+app.addEventListener("input",function(e){
+  var lk=e.target.getAttribute("data-lim");
+  if(lk){ if(lk==="_ref") L._ref=e.target.value; else { var a=lk.split("."); L[a[0]][a[1]]=e.target.value.trim(); } saveLim(); return; }
+  var k=e.target.getAttribute("data-k"); if(!k) return;
+  var v=e.target.value;
+  if(k.indexOf("cfg.")===0){ var n=num(v); if(n==null) return; v=n; }
+  setPath(k,v); save(); atualizaPor(k);
+});
+app.addEventListener("change",function(e){
+  var k=e.target.getAttribute("data-chk"); if(!k) return;
+  setPath(k,e.target.checked); save();
+  var id=k.split(".")[1]; $("#wrap-"+id).style.display=e.target.checked?"none":"";
+  atualizaPor(k);
+});
+app.addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b) return;
+  var sg=b.parentNode.getAttribute&&b.parentNode.getAttribute("data-seg");
+  if(sg){
+    var v=b.getAttribute("data-v"), cur=getPath(sg), nv=(cur===v?"":v);
+    setPath(sg,nv); save();
+    Array.prototype.forEach.call(b.parentNode.children,function(x){ x.classList.toggle("on",x.getAttribute("data-v")===nv); });
+    if(/\.vazamento$/.test(sg)){ var id=sg.split(".")[1]; $("#vd-"+id).style.display=nv==="sim"?"":"none"; }
+    atualizaPor(sg); return;
+  }
+  if(b.hasAttribute("data-foto")){ pedirFoto(b.getAttribute("data-foto"),b.getAttribute("data-lbl")); return; }
+  if(b.hasAttribute("data-delfoto")){
+    if(!confirm("Remover esta foto?")) return;
+    var p=b.getAttribute("data-delfoto"), arr=getPath(p); arr.splice(+b.getAttribute("data-i"),1);
+    saveNow(); refazFotos(p); atualizaPor(p); return;
+  }
+  if(b.id==="limEditBtn"){ limEdit=!limEdit; if(!limEdit) toast("Limites salvos"); renderLimites(); return; }
+  if(b.id==="limResetBtn"){ if(!confirm("Restaurar os limites padrão? Os valores editados neste aparelho serão perdidos.")) return; L=limitesPadrao(); saveLim(); renderLimites(); toast("Limites restaurados"); return; }
+  if(b.id==="newBtn"){
+    if(!confirm("Iniciar nova inspeção? Todos os dados e fotos atuais serão apagados. Gere o PDF antes se precisar.")) return;
+    var insp=S.cab.inspetor, cfg=S.cfg, med=S.med;
+    S=novoEstado(insp); S.cfg=cfg;
+    S.med.modelo=med.modelo; S.med.serie=med.serie; S.med.calib=med.calib;
+    S.med.buf1=med.buf1; S.med.buf2=med.buf2; S.med.padrao=med.padrao;
+    saveNow(); render(); window.scrollTo(0,0); toast("Nova inspeção iniciada"); return;
+  }
+});
+function refazFotos(path){ var el=$("#ph-"+path.replace(/\./g,"-")); if(el) el.innerHTML=fotosInner(path); }
+
+/* ================= FOTOS ================= */
+var fotoAlvo=null;
+function pedirFoto(path,lbl){ fotoAlvo={path:path,lbl:lbl}; var fi=$("#fileIn"); fi.value=""; fi.click(); }
+$("#fileIn").addEventListener("change",function(){
+  var f=this.files&&this.files[0]; if(!f||!fotoAlvo) return;
+  var alvo=fotoAlvo;
+  comprime(f,function(dataUrl){
+    var agora=new Date();
+    getPath(alvo.path).push({l:alvo.lbl, d:dataUrl, t:("0"+agora.getHours()).slice(-2)+":"+("0"+agora.getMinutes()).slice(-2)});
+    saveNow(); refazFotos(alvo.path); atualizaPor(alvo.path); toast("Foto adicionada");
+  });
+});
+function comprime(file,cb){
+  var url=URL.createObjectURL(file), img=new Image();
+  img.onload=function(){
+    var max=1100, s=Math.min(1,max/Math.max(img.width,img.height));
+    var c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url); cb(c.toDataURL("image/jpeg",0.6));
+  };
+  img.onerror=function(){ URL.revokeObjectURL(url); toast("Não foi possível ler a imagem"); };
+  img.src=url;
+}
+
+/* ================= RELATÓRIO PDF ================= */
+function v(x,suf){ return (x===""||x==null)?"–":esc(x)+(suf||""); }
+function lbl(x){ return {operando:"Operando",parada:"Parada",sim:"Sim",nao:"Não",ok:"OK",baixa:"Baixa",ruim:"Com problema"}[x]||x||"–"; }
+function stTxt(st){ return {ok:'<span class="r-ok">OK</span>',warn:'<span class="r-warn">ATENÇÃO</span>',pend:'Pendente',skip:'Não insp.'}[st]; }
+function fotosR(arr){ if(!arr.length) return ""; return '<div class="r-ph">'+arr.map(function(f){return '<figure><img src="'+f.d+'"><figcaption>'+esc(f.l)+' · '+esc(f.t||"")+'</figcaption></figure>';}).join("")+'</div>'; }
+
+function anexoTabela(){
+  var h='';
+  h+='<div class="r-sec">Anexo A · Tabela completa de resultados</div>';
+  h+='<table class="r"><tr><th rowspan="2">Ponto</th><th colspan="3">pH</th><th colspan="3">Condutividade (µS/cm)</th><th colspan="4">Fosfato (ppm)</th><th rowspan="2">Produto</th><th rowspan="2">Dosagem</th><th rowspan="2">Vazão<br>L/h</th><th rowspan="2">Pressão<br>kgf/cm²</th><th rowspan="2">Nível<br>L</th><th rowspan="2">Vaz.</th><th rowspan="2">Status</th></tr>'
+    +'<tr><th>Trasar</th><th>Port.</th><th>Δ</th><th>Trasar</th><th>Port.</th><th>Δ%</th><th>Tinta</th><th>PO₄ calc.</th><th>PO₄ Lab.</th><th>Δ</th></tr>';
+  PONTOS.forEach(function(pt){
+    var p=S.pts[pt.id], r=avaliaPonto(pt.id), a=cmpPh(p.phT,p.phP), c=cmpCond(p.condT,p.condP), fo=cmpFos(p), pc=po4Calc(p), rl=faixaPO4(pt.id,p.fosP);
+    function cv(k,f){ var st=faixa(pt.id,k,p[f]); return '<td'+((st==="alto"||st==="baixo")?' class="fx"':'')+'>'+v(p[f])+'</td>'; }
+    if(p.skip){ h+='<tr><td class="l">'+esc(pt.nome)+'</td><td colspan="16">Não inspecionado</td><td>'+stTxt("skip")+'</td></tr>'; return; }
+    h+='<tr><td class="l">'+esc(pt.nome)+'</td>'+cv("ph","phT")+cv("ph","phP")+'<td class="'+(a?(a.ok?"r-ok":"r-warn"):"")+'">'+(a?fmt(a.d,2):"–")+'</td>'
+      +cv("cond","condT")+cv("cond","condP")+'<td class="'+(c?(c.ok?"r-ok":"r-warn"):"")+'">'+(c?fmt(c.d,1):"–")+'</td>'
+      +(pt.dose?cv("fos","fosT")+'<td>'+(pc!=null?fmt(pc,2):"–")+'</td><td'+((rl==="alto"||rl==="baixo")?' class="fx"':'')+'>'+v(p.fosP)+'</td><td class="'+(fo?(fo.ok?"r-ok":"r-warn"):"")+'">'+(fo?fmt(fo.d,2):"–")+'</td>':'<td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td>')
+      +'<td>'+v(p.produto)+'</td><td>'+lbl(p.dosagem)+'</td><td>'+v(p.vazao)+'</td><td>'+v(p.pressao)+'</td><td>'+v(p.nivel)+'</td><td>'+lbl(p.vazamento)+'</td><td>'+stTxt(r.st)+'</td></tr>';
+  });
+  h+='</table><p style="font-size:8.5pt">Tolerâncias: Δ pH ≤ '+fmt(S.cfg.tolPh,2)+' · Δ condutividade ≤ '+fmt(S.cfg.tolCond,0)+'% · PO₄ calc. = tinta ÷ '+fmt(fator(),2)+' · Δ PO₄ ≤ '+fmt(S.cfg.tolPO4,2)+' ppm · <u style="color:#C5221F">valor sublinhado</u> = fora da faixa de controle</p>';
+  var temLim=PONTOS.some(function(pt){ return PARAMS.some(function(q){ return faixaTxt(pt.id,q.k,q.casas); }); });
+  if(temLim){
+    h+='<div class="r-sec">Anexo B · Faixas de controle utilizadas</div><table class="r"><tr><th>Ponto</th>'+PARAMS.map(function(q){return '<th>'+q.nome+(q.un?' ('+q.un+')':'')+'</th>';}).join("")+'</tr>';
+    PONTOS.forEach(function(pt){ h+='<tr><td class="l">'+esc(pt.nome)+'</td>'+PARAMS.map(function(q){ return '<td>'+(!aplica(q,pt)?'n/a':(faixaTxt(pt.id,q.k,q.casas)||'–')+(q.k==="fos"&&faixaPO4Txt(pt.id)?' <small>(PO₄ '+faixaPO4Txt(pt.id)+')</small>':''))+'</td>'; }).join("")+'</tr>'; });
+    h+='</table>'+(L._ref?'<p style="font-size:8.5pt">Referência: '+esc(L._ref)+'</p>':'');
+  }
+
+  return h;
+}
+
+/* ---------- régua de faixa (SVG) ---------- */
+var INK="#1A2330", MUTED="#5B6878", RED="#C5221F";
+function regua(lo,hi,vals){
+  var W=300,H=30,x0=6,x1=W-6, pts=vals.filter(function(o){return o.v!=null;});
+  if(lo==null&&hi==null) return '<svg viewBox="0 0 '+W+' '+H+'"><text x="'+(W/2)+'" y="17" text-anchor="middle" font-size="9" fill="'+MUTED+'">faixa não cadastrada</text></svg>';
+  var a=lo!=null?lo:hi, b=hi!=null?hi:lo, span=(b-a)||Math.abs(a)*0.2||1;
+  var dmin=a-span*0.6, dmax=b+span*0.6;
+  pts.forEach(function(o){ if(o.v<dmin) dmin=o.v-span*0.15; if(o.v>dmax) dmax=o.v+span*0.15; });
+  function X(v){ return x0+(v-dmin)/(dmax-dmin)*(x1-x0); }
+  var g='<svg viewBox="0 0 '+W+' '+H+'" role="img">';
+  g+='<rect x="'+x0+'" y="7" width="'+(x1-x0)+'" height="10" rx="5" fill="#EEF1F4"/>';
+  var bx=X(lo!=null?lo:dmin), ex=X(hi!=null?hi:dmax);
+  g+='<rect x="'+bx+'" y="7" width="'+Math.max(ex-bx,2)+'" height="10" rx="2" fill="#D4ECDC" stroke="#8CC7A1" stroke-width="1"/>';
+  if(lo!=null) g+='<text x="'+bx+'" y="28" text-anchor="middle" font-size="8" fill="'+MUTED+'">'+fmtN(lo)+'</text>';
+  if(hi!=null) g+='<text x="'+ex+'" y="28" text-anchor="middle" font-size="8" fill="'+MUTED+'">'+fmtN(hi)+'</text>';
+  pts.forEach(function(o){
+    var out=(lo!=null&&o.v<lo)||(hi!=null&&o.v>hi), c=out?RED:INK, x=X(o.v);
+    if(o.s==="c") g+='<circle cx="'+x+'" cy="12" r="5" fill="'+c+'" stroke="#fff" stroke-width="1.5"/>';
+    else g+='<path d="M'+x+' 5.5 L'+(x+5.8)+' 16 L'+(x-5.8)+' 16 Z" fill="'+c+'" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>';
+  });
+  return g+'</svg>';
+}
+function fmtN(n){ var d=Math.abs(n)<10&&n%1!==0?2:(n%1!==0?1:0); return fmt(n,d); }
+function linhaRegua(nome,un,lo,hi,a,b,rot,delta){
+  var vl='<span>'+rot[0]+' <b>'+(a==null?'–':fmtN(a))+'</b></span>'+(rot[1]?' · <span>'+rot[1]+' <b>'+(b==null?'–':fmtN(b))+'</b></span>':'');
+  if(delta) vl+='<br><span class="d'+(delta.ok?'':' w')+'">Δ '+delta.txt+(delta.ok?'':' ⚠')+'</span>';
+  return '<div class="rg"><div class="nm">'+nome+(un?'<small>'+un+'</small>':'')+'</div>'+regua(lo,hi,[{v:a,s:"c"},{v:b,s:"t"}])+'<div class="vl">'+vl+'</div></div>';
+}
+
+/* ---------- plano de ação (a partir dos dados) ---------- */
+function planoAcao(){
+  var L2=[];
+  function add(pt,oc,ac,pr){ L2.push({pt:pt,oc:oc,ac:ac,pr:pr}); }
+  var rm=avaliaMedidor();
+  if(rm.st==="warn") add("Medidor portátil",rm.issues.join("; "),"Recalibrar / trocar eletrodo antes da próxima inspeção","a");
+  PONTOS.forEach(function(pt){
+    var p=S.pts[pt.id]; if(p.skip) return;
+    ["ph","cond"].forEach(function(k){
+      var nome=k==="ph"?"pH":"Condutividade", un=k==="ph"?"":" µS/cm";
+      FONTES[k].forEach(function(f){ var r=faixa(pt.id,k,p[f[0]]);
+        if(r==="alto"||r==="baixo") add(pt.nome,nome+" "+f[1]+" "+p[f[0]]+un+" "+(r==="alto"?"acima":"abaixo")+" da faixa ("+faixaTxt(pt.id,k,2)+")",
+          k==="ph"?"Verificar dosagem de amina/fosfato e purga; acompanhar tendência no Trasar":"Verificar purga/descarga e qualidade da água de alimentação","a"); });
+    });
+    if(pt.dose){ var r=faixa(pt.id,"fos",p.fosT); if(r==="alto"||r==="baixo") add(pt.nome,"TRASAR Dose "+p.fosT+" ppm "+(r==="alto"?"acima":"abaixo")+" da faixa","Ajustar vazão da bomba de fosfato","a");
+      var rl=faixaPO4(pt.id,p.fosP); if(rl==="alto"||rl==="baixo") add(pt.nome,"PO₄ laboratório "+p.fosP+" ppm "+(rl==="alto"?"acima":"abaixo")+" da faixa","Confirmar análise e ajustar dosagem","a");
+      var fo=cmpFos(p); if(fo&&!fo.ok) add(pt.nome,"PO₄ Trasar × laboratório Δ "+fmt(fo.d,2)+" ppm","Verificar calibração do Trasar e coleta da amostra","m"); }
+    var a=cmpPh(p.phT,p.phP); if(a&&!a.ok) add(pt.nome,"pH Trasar × portátil Δ "+fmt(a.d,2),"Verificar sonda de pH do Trasar (limpeza/calibração)","m");
+    var c=cmpCond(p.condT,p.condP); if(c&&!c.ok) add(pt.nome,"Condutividade Trasar × portátil Δ "+fmt(c.d,1)+"%","Verificar sonda de condutividade do Trasar","m");
+    if(p.dosagem==="parada") add(pt.nome,"Dosagem parada","Verificar bomba dosadora e restabelecer dosagem","a");
+    if(p.vazamento==="sim") add(pt.nome,"Vazamento"+(p.vazDesc?": "+p.vazDesc:""),"Reparar e registrar ordem de manutenção","a");
+  });
+  L2.sort(function(x,y){ return x.pr===y.pr?0:(x.pr==="a"?-1:1); });
+  return L2;
+}
+
+function montaRelatorio(){
+  var m=S.med, rm=avaliaMedidor(), h='';
+  var stats={ok:0,warn:0,pend:0,skip:0}; PONTOS.forEach(function(pt){ stats[avaliaPonto(pt.id).st]++; });
+  var insp=stats.ok+stats.warn;
+
+  /* ===== Página 1: resumo ===== */
+  h+='<div class="r-head"><div style="text-align:left"><h1>Relatório de Inspeção – Tratamento de Água</h1>Klabin · Unidade Puma · Ecolab / Nalco Water</div>'
+    +'<div><b>Data:</b> '+esc(dataBR(S.cab.data))+'<br><b>Inspetor:</b> '+v(S.cab.inspetor)+'</div></div>';
+  h+='<div class="kpis">'
+    +'<div class="kpi"><small>Pontos inspecionados</small><b>'+insp+'<span> de '+PONTOS.length+'</span></b><span>'+(stats.skip?stats.skip+' não inspecionado(s)':'todos os pontos')+'</span></div>'
+    +'<div class="kpi"><small>Conformes</small><b><span class="ic ic-ok">✔</span>'+stats.ok+'</b><span>dentro das faixas e tolerâncias</span></div>'
+    +'<div class="kpi"><small>Com atenção</small><b><span class="ic ic-warn">⚠</span>'+stats.warn+'</b><span>ver plano de ação</span></div>'
+    +'<div class="kpi"><small>Medidor portátil</small><b style="font-size:13pt;padding:5px 0 3px"><span class="ic '+(rm.st==="ok"?"ic-ok":rm.st==="warn"?"ic-warn":"ic-pend")+'">'+(rm.st==="ok"?"✔":rm.st==="warn"?"⚠":"–")+'</span>'+(rm.st==="ok"?"Verificado":rm.st==="warn"?"Com pendência":"Não verificado")+'</b><span>'+(m.calib?'calibrado em '+esc(dataBR(m.calib)):'')+'</span></div>'
+    +'</div>';
+
+  h+='<div class="r-sec">Mapa de status</div><div class="mapa">';
+  PONTOS.forEach(function(pt){
+    var p=S.pts[pt.id], r=avaliaPonto(pt.id), cls=r.st==="ok"?"ok":r.st==="warn"?"warn":"";
+    var st=r.st==="ok"?'<span class="st">✔ Conforme</span>':r.st==="warn"?'<span class="st">⚠ '+r.issues.length+' ocorrência'+(r.issues.length>1?'s':'')+'</span>':'<span class="st n">'+(r.st==="skip"?'— Não inspecionado':'Pendente')+'</span>';
+    var dados=p.skip?'':[p.phP||p.phT?'pH '+(p.phP||p.phT):'', pt.dose&&po4Calc(p)!=null?'PO₄ '+fmt(po4Calc(p),2):''].filter(Boolean).join(' · ');
+    h+='<div class="mt '+cls+'"><b>'+esc(pt.nome.replace("Trasar ",""))+'</b>'+st+(dados?'<br>'+dados:'')+'</div>';
+  });
+  h+='</div>';
+
+  var pa=planoAcao();
+  h+='<div class="r-sec">Plano de ação</div>';
+  if(pa.length){
+    h+='<p class="r-sub">Ações sugeridas automaticamente a partir das ocorrências — revisar com a área.</p><table class="acao"><tr><th style="width:17%">Ponto</th><th style="width:37%">Ocorrência</th><th>Ação sugerida</th><th style="width:9%">Prioridade</th></tr>';
+    pa.forEach(function(x){ h+='<tr><td><b>'+esc(x.pt)+'</b></td><td>'+esc(x.oc)+'</td><td>'+esc(x.ac)+'</td><td><span class="prio '+x.pr+'">'+(x.pr==="a"?"Alta":"Média")+'</span></td></tr>'; });
+    h+='</table>';
+  } else h+='<p>Nenhuma ocorrência. Todos os pontos inspecionados estão conformes.</p>';
+  if(S.cab.obs) h+='<div class="r-sec">Observações gerais</div><p style="font-size:9.5pt">'+esc(S.cab.obs)+'</p>';
+
+  /* ===== Visão por ponto ===== */
+  h+='<div class="r-sec pb">Resultados por ponto</div>';
+  h+='<div class="leg"><span><svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="'+INK+'"/></svg> Trasar</span>'
+    +'<span><svg width="14" height="14"><path d="M7 1.5 L12.8 12 L1.2 12 Z" fill="'+INK+'"/></svg> Portátil / Laboratório</span>'
+    +'<span><svg width="26" height="12"><rect x="1" y="2" width="24" height="8" rx="2" fill="#D4ECDC" stroke="#8CC7A1"/></svg> Faixa de controle</span>'
+    +'<span style="color:'+RED+'">● ▲ em vermelho = fora da faixa</span></div>';
+  h+='<div class="cards">';
+  PONTOS.forEach(function(pt){
+    var p=S.pts[pt.id], r=avaliaPonto(pt.id), cls=r.st==="ok"?"ok":r.st==="warn"?"warn":"";
+    var pill={ok:'<span class="pill ok">✔ Conforme</span>',warn:'<span class="pill warn">⚠ Atenção</span>',pend:'<span class="pill pend">Pendente</span>',skip:'<span class="pill skip">— Não inspecionado</span>'}[r.st];
+    h+='<div class="pc '+cls+'"><h4><span>'+esc(pt.nome)+'</span>'+pill+'</h4>';
+    if(p.skip||r.st==="pend"){ h+='<div class="dos">'+(p.skip?'Ponto não inspecionado nesta data.':'Sem dados registrados.')+(p.obs?' '+esc(p.obs):'')+'</div></div>'; return; }
+    var a=cmpPh(p.phT,p.phP), c=cmpCond(p.condT,p.condP);
+    h+=linhaRegua("pH","",num(L[pt.id].phMin),num(L[pt.id].phMax),num(p.phT),num(p.phP),["T","P"],a?{ok:a.ok,txt:fmt(a.d,2)}:null);
+    h+=linhaRegua("Condut.","µS/cm",num(L[pt.id].condMin),num(L[pt.id].condMax),num(p.condT),num(p.condP),["T","P"],c?{ok:c.ok,txt:fmt(c.d,1)+"%"}:null);
+    if(pt.dose){
+      var f=fator(), lo=num(L[pt.id].fosMin), hi=num(L[pt.id].fosMax), fo=cmpFos(p);
+      h+=linhaRegua("PO₄","ppm",lo!=null?lo/f:null,hi!=null?hi/f:null,po4Calc(p),num(p.fosP),["T","Lab"],fo?{ok:fo.ok,txt:fmt(fo.d,2)+" ppm"}:null);
+    }
+    var dz=[];
+    if(p.produto) dz.push('<b>'+esc(p.produto)+'</b>');
+    if(p.dosagem) dz.push(p.dosagem==="parada"?'<span class="w">Dosagem parada</span>':'Operando');
+    if(p.vazao) dz.push(esc(p.vazao)+' L/h'); if(p.pressao) dz.push(esc(p.pressao)+' kgf/cm²'); if(p.nivel) dz.push('tanque '+esc(p.nivel)+' L');
+    if(p.vazamento) dz.push(p.vazamento==="sim"?'<span class="w">Vazamento</span>':'sem vazamento');
+    if(p.fotos.length) dz.push(p.fotos.length+' foto'+(p.fotos.length>1?'s':''));
+    if(dz.length) h+='<div class="dos">'+dz.join(' · ')+'</div>';
+    if(p.obs) h+='<div class="dos"><b>Obs.:</b> '+esc(p.obs)+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  /* ===== Registro fotográfico ===== */
+  var comFoto=PONTOS.filter(function(pt){ var p=S.pts[pt.id]; return !p.skip&&p.fotos.length; });
+  if(comFoto.length||m.fotos.length){
+    h+='<div class="r-sec pb">Registro fotográfico</div>';
+    if(m.fotos.length) h+='<div class="r-pt"><h4>Medidor portátil</h4>'+fotosR(m.fotos)+'</div>';
+    comFoto.forEach(function(pt){ h+='<div class="r-pt"><h4>'+esc(pt.nome)+' — '+stTxt(avaliaPonto(pt.id).st)+'</h4>'+fotosR(S.pts[pt.id].fotos)+'</div>'; });
+  }
+
+  /* ===== Anexos ===== */
+  h+='<div class="r-sec pb">Medidor portátil — verificação</div>';
+  h+='<table class="r"><tr><th>Modelo/TAG</th><th>Nº série</th><th>Últ. calibração</th><th>Tampão 1 (lido)</th><th>Tampão 2 (lido)</th><th>Padrão cond. (lido)</th><th>Bateria</th><th>Eletrodo</th><th>Status</th></tr>'
+    +'<tr><td>'+v(m.modelo)+'</td><td>'+v(m.serie)+'</td><td>'+v(dataBR(m.calib))+'</td><td>'+v(m.buf1)+' ('+v(m.buf1L)+')</td><td>'+v(m.buf2)+' ('+v(m.buf2L)+')</td><td>'+v(m.padrao)+' ('+v(m.padraoL)+')</td><td>'+lbl(m.bateria)+'</td><td>'+lbl(m.eletrodo)+'</td><td>'+stTxt(rm.st)+'</td></tr></table>';
+  if(m.obs) h+='<p style="font-size:9pt"><b>Obs.:</b> '+esc(m.obs)+'</p>';
+  h+=anexoTabela();
+  h+='<div class="r-sign"><div>'+v(S.cab.inspetor)+'<br>Ecolab / Nalco Water</div><div>Responsável Klabin</div></div>';
+  $("#report").innerHTML=h;
+}
+$("#pdfBtn").addEventListener("click",function(){
+  saveNow(); montaRelatorio();
+  var t=document.title; document.title="Inspecao_Puma_"+(S.cab.data||hoje());
+  setTimeout(function(){ window.print(); setTimeout(function(){document.title=t;},500); },150);
+});
+
+/* ================= ABAS ================= */
+document.querySelector(".tabs").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-view]"); if(!b) return;
+  var v=b.getAttribute("data-view"); if(v===VIEW) return;
+  VIEW=v; limEdit=false; render(); window.scrollTo(0,0);
+});
+
+/* ================= TEMA ================= */
+function aplicaTema(t){ document.documentElement.setAttribute("data-theme",t); var mt=document.querySelector('meta[name=theme-color]'); if(mt) mt.content=t==="dark"?"#0F151C":"#0060A9"; }
+var tema; try{ tema=localStorage.getItem(THEME_KEY); }catch(e){}
+if(!tema) tema=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+aplicaTema(tema);
+$("#themeBtn").addEventListener("click",function(){ tema=tema==="dark"?"light":"dark"; aplicaTema(tema); try{localStorage.setItem(THEME_KEY,tema);}catch(e){} });
+
+render();
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+})();
+</script>
+</body>
+</html>
