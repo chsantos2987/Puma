@@ -1,0 +1,106 @@
+{
+  "versao": "2026-09-28",
+  "ref": "Limites do Nalco Water Quality IQ (System Performance by Parameter), consultados em 23/09/2026.",
+  "pontos": {
+    "da1": {
+      "phMin": "9,2",
+      "phMax": "9,8",
+      "condMin": "3",
+      "condMax": "10",
+      "fosMin": "",
+      "fosMax": "",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "da2": {
+      "phMin": "9,2",
+      "phMax": "9,8",
+      "condMin": "3",
+      "condMax": "10",
+      "fosMin": "",
+      "fosMax": "",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdf1d": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "5",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdf2a": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "8",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdf2d": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "8",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdr1a": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "5",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdr1d": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "5",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdr2a": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "6",
+      "condMax": "80",
+      "fosMin": "40",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "cdr2d": {
+      "phMin": "9,3",
+      "phMax": "9,7",
+      "condMin": "6",
+      "condMax": "80",
+      "fosMin": "40",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    },
+    "wsa": {
+      "phMin": "9,2",
+      "phMax": "9,8",
+      "condMin": "3",
+      "condMax": "30",
+      "fosMin": "25",
+      "fosMax": "75",
+      "semAnalise": false,
+      "semDosagem": false
+    }
+  }
+}
